@@ -1,16 +1,112 @@
-import { Text, View } from "react-native";
-import { Link } from "expo-router";
+import { Text, View, StyleSheet, Pressable, Image } from "react-native";
+import { Link, router, Stack } from "expo-router";
+import {
+  CameraCapturedPicture,
+  CameraType,
+  CameraView,
+  useCameraPermissions,
+} from "expo-camera";
+import { ActivityIndicator } from "react-native";
+import { useEffect, useState, useRef } from "react";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const CameraScreen = () => {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text style={{ fontSize: 20, fontWeight: "600" }}>Camera Screen</Text>
+  const [permission, requestPermission] = useCameraPermissions();
+  const [facing, setFacing] = useState<CameraType>("back");
+  const camera = useRef<CameraView>(null);
+  const [picture, setPicture] = useState<CameraCapturedPicture>();
 
-      <Link href="/" style={{ padding: 10, fontSize: 18 }}>
-        Home
-      </Link>
+  useEffect(() => {
+    if (permission && !permission?.granted && permission.canAskAgain) {
+      requestPermission();
+    }
+  }, [permission]);
+
+  const toggleCameraFacing = () => {
+    setFacing((current) => (current === "back" ? "front" : "back"));
+  };
+
+  const takePicture = async () => {
+    const response = await camera.current?.takePictureAsync();
+    console.log(response);
+    setPicture(response);
+  };
+
+  if (!permission?.granted) {
+    return <ActivityIndicator />;
+  }
+
+  if (picture) {
+    return (
+      <View>
+        <Image
+          source={{ uri: picture.uri }}
+          style={{ width: "100%", height: "100%" }}
+        />
+        <MaterialIcons
+          onPress={() => {
+            setPicture(undefined);
+          }}
+          name="close"
+          size={35}
+          color="white"
+          style={{ position: "absolute", top: 50, left: 20, color: "red" }}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <CameraView style={styles.camera} facing={facing} ref={camera}>
+        <View style={styles.footer}>
+          <View />
+          <Pressable style={styles.buttonRecord} onPress={takePicture} />
+          <MaterialIcons
+            name="flip-camera-ios"
+            size={30}
+            color="white"
+            onPress={toggleCameraFacing}
+          />
+        </View>
+      </CameraView>
+
+      <MaterialIcons
+        name="close"
+        size={30}
+        color="white"
+        style={styles.close}
+        onPress={() => router.back()}
+      />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  camera: {
+    width: "100%",
+    height: "100%",
+  },
+  close: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+  },
+  footer: {
+    marginTop: "auto",
+    padding: 20,
+    paddingBottom: 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#00000099",
+  },
+  buttonRecord: {
+    width: 50,
+    height: 50,
+    borderRadius: 50,
+    backgroundColor: "white",
+  },
+});
 
 export default CameraScreen;
