@@ -12,6 +12,10 @@ const HomeScreen = () => {
           <MaterialIcons name="photo-camera" size={30} color="white" />
         </Pressable>
       </Link>
+
+      <Link href={"/image-1"}>Image 1</Link>
+      <Link href={"/image-2"}>Image 2</Link>
+      <Link href={"/image-3"}>Image 3</Link>
     </View>
   );
 };
