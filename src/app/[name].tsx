@@ -1,20 +1,45 @@
-import { Link, Stack } from "expo-router";
-import { Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, Image } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import * as FileSystem from "expo-file-system/legacy";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 
 const ImageScreen = () => {
   const { name } = useLocalSearchParams<{ name: string }>();
+  const fullUri = FileSystem.documentDirectory + name;
+
+  const onDelete = async () => {
+    await FileSystem.deleteAsync(fullUri);
+    router.back();
+  };
+
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Stack.Screen options={{ title: "Image: " + name }} />
-
-      <Text style={{ fontSize: 20, fontWeight: "600" }}>
-        Image Screen Details for {name}
-      </Text>
-
-      <Link href="/" style={{ padding: 10, fontSize: 18 }}>
-        Home
-      </Link>
+      <Stack.Screen
+        options={{
+          title: "Media",
+          headerRight: () => (
+            <View style={{ gap: 10, flexDirection: "row" }}>
+              <MaterialIcons
+                onPress={onDelete}
+                name="delete"
+                size={26}
+                color="crimson"
+              />
+              <MaterialIcons
+                onPress={() => {}}
+                name="save"
+                size={26}
+                color="dimgray"
+              />
+            </View>
+          ),
+        }}
+      />
+      <Image
+        source={{ uri: fullUri }}
+        style={{ width: "100%", height: "100%" }}
+      />
     </View>
   );
 };

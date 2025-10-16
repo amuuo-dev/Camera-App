@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, Pressable, Image } from "react-native";
+import { Text, View, StyleSheet, Pressable, Image, Button } from "react-native";
 import { Link, router, Stack } from "expo-router";
 import {
   CameraCapturedPicture,
@@ -9,6 +9,9 @@ import {
 import { ActivityIndicator } from "react-native";
 import { useEffect, useState, useRef } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system/legacy";
+import { SafeAreaView } from "react-native-safe-area-context";
+import path from "path";
 
 const CameraScreen = () => {
   const [permission, requestPermission] = useCameraPermissions();
@@ -28,7 +31,6 @@ const CameraScreen = () => {
 
   const takePicture = async () => {
     const response = await camera.current?.takePictureAsync();
-    console.log(response);
     setPicture(response);
   };
 
@@ -36,13 +38,30 @@ const CameraScreen = () => {
     return <ActivityIndicator />;
   }
 
+  const saveFile = async (uri: string) => {
+    const filename = path.parse(uri).base;
+    await FileSystem.copyAsync({
+      from: uri,
+      to: FileSystem.documentDirectory + filename,
+    });
+    setPicture(undefined);
+    router.push("/");
+  };
+
   if (picture) {
     return (
-      <View>
+      <View style={{ flex: 1 }}>
         <Image
           source={{ uri: picture.uri }}
-          style={{ width: "100%", height: "100%" }}
+          style={{ width: "100%", flex: 1 }}
         />
+
+        <View style={{ padding: 10 }}>
+          <SafeAreaView edges={["bottom"]}>
+            <Button title="Save" onPress={() => saveFile(picture.uri)} />
+          </SafeAreaView>
+        </View>
+
         <MaterialIcons
           onPress={() => {
             setPicture(undefined);
